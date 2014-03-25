@@ -85,7 +85,7 @@ AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
     }
 
     // now just pick out the most annoying moves
-    var maxScore = Math.max(Math.max.apply(null, scores[2]), Math.max.apply(null, scores[4]));
+    var maxScore = Math.max.apply(null, scores);
     for (var i = 0; i < scores.length; i++) {
       if (scores[i] == maxScore) {
         candidates.push( { position: cells[i], value: 2 } );
