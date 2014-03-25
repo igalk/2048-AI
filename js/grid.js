@@ -8,6 +8,8 @@ function Grid(size) {
   this.playerTurn = true;
 }
 
+Grid.prototype.winScore = 8192;
+
 // pre-allocate these objects (for speed)
 Grid.prototype.indexes = [];
 for (var x = 0; x < 4; x++) {
@@ -198,8 +200,8 @@ Grid.prototype.move = function (direction) {
           // Update the score
           score += merged.value;
 
-          // The mighty 8192 tile
-          if (merged.value === 8192) {
+          // The mighty win tile
+          if (merged.value === this.winScore) {
             won = true;
           }
         } else {
@@ -306,7 +308,7 @@ Grid.prototype.toString = function() {
   return string;
 }
 
-// counts the number of isolated groups. 
+// counts the number of isolated groups.
 Grid.prototype.islands = function() {
   var self = this;
   var mark = function(x, y, value) {
@@ -315,7 +317,7 @@ Grid.prototype.islands = function() {
         self.cells[x][y].value == value &&
         !self.cells[x][y].marked ) {
       self.cells[x][y].marked = true;
-      
+
       for (direction in [0,1,2,3]) {
         var vector = self.getVector(direction);
         mark(x + vector.x, y + vector.y, value);
@@ -341,7 +343,7 @@ Grid.prototype.islands = function() {
       }
     }
   }
-  
+
   return islands;
 }
 
@@ -349,7 +351,7 @@ Grid.prototype.islands = function() {
 // measures how smooth the grid is (as if the values of the pieces
 // were interpreted as elevations). Sums of the pairwise difference
 // between neighboring tiles (in log space, so it represents the
-// number of merges that need to happen before they can merge). 
+// number of merges that need to happen before they can merge).
 // Note that the pieces can be distant
 Grid.prototype.smoothness = function() {
   var smoothness = 0;
@@ -418,7 +420,7 @@ Grid.prototype.monotonicity = function() {
             //console.log(cell, value, target, targetValue);
             increases += targetValue - value;
           }
-        } 
+        }
         if (!queued[target.x][target.y]) {
           cellQueue.push(target);
           queued[target.x][target.y] = true;
@@ -520,10 +522,10 @@ Grid.prototype.maxValue = function() {
 // check for win
 Grid.prototype.isWin = function() {
   var self = this;
-  for (var x=0; x<4; x++) {
-    for (var y=0; y<4; y++) {
+  for (var x = 0; x < 4; x++) {
+    for (var y = 0; y < 4; y++) {
       if (self.cellOccupied(this.indexes[x][y])) {
-        if (self.cellContent(this.indexes[x][y]).value == 8192) {
+        if (self.cellContent(this.indexes[x][y]).value == this.winScore) {
           return true;
         }
       }
