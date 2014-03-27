@@ -1,7 +1,4 @@
-function Grid(size) {
-  this.size = size;
-  this.startTiles = 2;
-
+function Grid() {
   this.cells = [];
 
   this.build();
@@ -19,12 +16,11 @@ for (var x = 0; x < 4; x++) {
   }
 }
 
-// Build a grid of the specified size
+// Build a grid
 Grid.prototype.build = function () {
-  for (var x = 0; x < this.size; x++) {
+  for (var x = 0; x < 4; x++) {
     var row = this.cells[x] = [];
-
-    for (var y = 0; y < this.size; y++) {
+    for (var y = 0; y < 4; y++) {
       row.push(null);
     }
   }
@@ -34,7 +30,6 @@ Grid.prototype.build = function () {
 // Find the first available random position
 Grid.prototype.randomAvailableCell = function () {
   var cells = this.availableCells();
-
   if (cells.length) {
     return cells[Math.floor(Math.random() * cells.length)];
   }
@@ -55,9 +50,10 @@ Grid.prototype.availableCells = function () {
 
 // Call callback for every cell
 Grid.prototype.eachCell = function (callback) {
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
-      callback(x, y, this.cells[x][y]);
+  for (var x = 0; x < 4; x++) {
+    var row = this.cells[x];
+    for (var y = 0; y < 4; y++) {
+      callback(x, y, row[y]);
     }
   }
 };
@@ -94,28 +90,25 @@ Grid.prototype.removeTile = function (tile) {
 };
 
 Grid.prototype.withinBounds = function (position) {
-  return position.x >= 0 && position.x < this.size &&
-         position.y >= 0 && position.y < this.size;
+  return position.x >= 0 && position.x < 4 &&
+         position.y >= 0 && position.y < 4;
 };
 
 Grid.prototype.clone = function() {
-  newGrid = new Grid(this.size);
+  newGrid = new Grid();
   newGrid.playerTurn = this.playerTurn;
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
-      if (this.cells[x][y]) {
-        newGrid.insertTile(this.cells[x][y].clone());
-      }
+  this.eachCell(function(x, y, tile) {
+    if (tile) {
+      newGrid.insertTile(tile.clone());
     }
-  }
+  });
   return newGrid;
 };
 
 // Set up the initial tiles to start the game with
 Grid.prototype.addStartTiles = function () {
-  for (var i=0; i<this.startTiles; i++) {
-    this.addRandomTile();
-  }
+  this.addRandomTile();
+  this.addRandomTile();
 };
 
 // Adds a tile in a random position
@@ -147,10 +140,10 @@ Grid.prototype.moveTile = function (tile, cell) {
 
 
 Grid.prototype.vectors = {
-  0: { x: 0,  y: -1 }, // up
-  1: { x: 1,  y: 0 },  // right
-  2: { x: 0,  y: 1 },  // down
-  3: { x: -1, y: 0 }   // left
+  0: { x:  0, y: -1 }, // up
+  1: { x:  1, y:  0 },  // right
+  2: { x:  0, y:  1 },  // down
+  3: { x: -1, y:  0 }   // left
 }
 
 // Get the vector representing the chosen direction
@@ -228,7 +221,7 @@ Grid.prototype.computerMove = function() {
 Grid.prototype.buildTraversals = function (vector) {
   var traversals = { x: [], y: [] };
 
-  for (var pos = 0; pos < this.size; pos++) {
+  for (var pos = 0; pos < 4; pos++) {
     traversals.x.push(pos);
     traversals.y.push(pos);
   }
@@ -267,8 +260,8 @@ Grid.prototype.tileMatchesAvailable = function () {
 
   var tile;
 
-  for (var x = 0; x < this.size; x++) {
-    for (var y = 0; y < this.size; y++) {
+  for (var x = 0; x < 4; x++) {
+    for (var y = 0; y < 4; y++) {
       tile = this.cellContent({ x: x, y: y });
 
       if (tile) {

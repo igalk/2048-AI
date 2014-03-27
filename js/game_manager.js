@@ -1,5 +1,4 @@
-function GameManager(size, InputManager, Actuator) {
-  this.size         = size; // Size of the grid
+function GameManager(InputManager, Actuator) {
   this.inputManager = new InputManager;
   this.actuator     = new Actuator;
 
@@ -38,7 +37,7 @@ GameManager.prototype.restart = function () {
 
 // Set up the game
 GameManager.prototype.setup = function () {
-  this.grid         = new Grid(this.size);
+  this.grid         = new Grid();
   this.grid.addStartTiles();
 
   this.ai           = new AI(this.grid);
