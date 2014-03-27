@@ -4,24 +4,41 @@ function AI(grid) {
 
 // static evaluation function
 AI.prototype.eval = function() {
-  var emptyCells = 0;
-  var score = 0;
-  var max = 2;
-  var self = this;
-  this.grid.eachCell(function (x, y, tile) {
-    if (tile) {
-      if (tile.value == self.grid.winScore) {
-        score += 16*self.grid.winScore;
-      }
-      score += (tile.value/2 - 1);
-      max = Math.max(max, tile.value);
-    } else {
-      ++emptyCells;
-    }
-  });
+  var emptyCells = this.grid.availableCells().length;
 
-  return (max/16.0)*emptyCells + score;
+  var smoothWeight = 0.1,
+      //monoWeight   = 0.0,
+      //islandWeight = 0.0,
+      mono2Weight  = 1.0,
+      emptyWeight  = 2.7,
+      maxWeight    = 1.0;
+
+  return this.grid.smoothness() * smoothWeight
+       //+ this.grid.monotonicity() * monoWeight
+       //- this.grid.islands() * islandWeight
+       + this.grid.monotonicity2() * mono2Weight
+       + Math.log(emptyCells) * emptyWeight
+       + this.grid.maxValue() * maxWeight;
 };
+// AI.prototype.eval = function() {
+//   var emptyCells = 0;
+//   var score = 0;
+//   var max = 2;
+//   var self = this;
+//   this.grid.eachCell(function (x, y, tile) {
+//     if (tile) {
+//       if (tile.value == self.grid.winScore) {
+//         score += 16*self.grid.winScore;
+//       }
+//       score += (tile.value/2 - 1);
+//       max = Math.max(max, tile.value);
+//     } else {
+//       ++emptyCells;
+//     }
+//   });
+//
+//   return (max/16.0)*emptyCells + score;
+// };
 
 // performs a search and returns the best move
 AI.prototype.getBest = function() {

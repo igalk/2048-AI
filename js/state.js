@@ -28,6 +28,8 @@ State.prototype.search = function() {
     }
     if (best.grid != null) {
       states.push(new State(best.grid, best.score, this.origDirection, this.chance * cellChance * 0.9));
+    // } else {
+    //   states.push(new State(newGrid, 0, this.origDirection, this.chance * cellChance * 0.9));
     }
 
     newGrid = this.grid.clone();
@@ -45,6 +47,8 @@ State.prototype.search = function() {
     }
     if (best.grid != null) {
       states.push(new State(best.grid, best.score, this.origDirection, this.chance * cellChance * 0.1));
+    // } else {
+    //   states.push(new State(newGrid, 0, this.origDirection, this.chance * cellChance * 0.9));
     }
   }
   return states;
