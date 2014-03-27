@@ -4,21 +4,19 @@ function AI(grid) {
 
 // static evaluation function
 AI.prototype.eval = function() {
-  var emptyCells = this.grid.availableCells().length;
-
+  var emptyCells = 0;
   var score = 0;
   var max = 2;
-  for (var i in this.grid.cells) {
-    for (var j in this.grid.cells[i]) {
-      var tile = this.grid.cells[i][j];
-      if (tile != null) {
-        score += (tile.value/2 - 1);
-        max = Math.max(max, tile.value);
-      }
+  this.grid.eachCell(function (x, y, tile) {
+    if (tile) {
+      score += (tile.value/2 - 1);
+      max = Math.max(max, tile.value);
+    } else {
+      ++emptyCells;
     }
-  }
+  });
 
-  return (max/16.0)*emptyCells.length + score;
+  return (max/16.0)*emptyCells + score;
 };
 
 // alpha-beta depth first search
@@ -118,7 +116,7 @@ AI.prototype.iterativeDeep = function() {
     }
     depth++;
   } while ( (new Date()).getTime() - start < minSearchTime);
-  return best
+  return best;
 }
 
 AI.prototype.translate = function(move) {
