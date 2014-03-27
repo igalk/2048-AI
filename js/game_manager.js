@@ -9,7 +9,7 @@ function GameManager(InputManager, Actuator) {
 
   this.inputManager.on('think', function() {
     var best = this.ai.getBest();
-    this.actuator.showHint(best.move);
+    this.actuator.showHint(best);
   }.bind(this));
 
 
@@ -85,11 +85,11 @@ GameManager.prototype.move = function(direction) {
 // moves continuously until game is over
 GameManager.prototype.run = function() {
   var best = this.ai.getBest();
-  this.move(best.move);
+  this.move(best);
   var timeout = animationDelay;
   if (this.running && !this.over && !this.won) {
     var self = this;
-    setTimeout(function(){
+    setTimeout(function() {
       self.run();
     }, timeout);
   }

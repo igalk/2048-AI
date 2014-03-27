@@ -37,14 +37,11 @@ Grid.prototype.randomAvailableCell = function () {
 
 Grid.prototype.availableCells = function () {
   var cells = [];
-  var self = this;
-
   this.eachCell(function (x, y, tile) {
     if (!tile) {
       cells.push( {x:x, y:y} );
     }
   });
-
   return cells;
 };
 

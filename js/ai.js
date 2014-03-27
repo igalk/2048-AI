@@ -7,8 +7,12 @@ AI.prototype.eval = function() {
   var emptyCells = 0;
   var score = 0;
   var max = 2;
+  var self = this;
   this.grid.eachCell(function (x, y, tile) {
     if (tile) {
+      if (tile.value == self.grid.winScore) {
+        score += 16*self.grid.winScore;
+      }
       score += (tile.value/2 - 1);
       max = Math.max(max, tile.value);
     } else {
@@ -19,84 +23,6 @@ AI.prototype.eval = function() {
   return (max/16.0)*emptyCells + score;
 };
 
-// alpha-beta depth first search
-// in the beta step concider chance instead on min.
-AI.prototype.search = function(depth, alpha, beta, positions, cutoffs) {
-  var bestScore;
-  var bestMove = -1;
-  var result;
-
-  // the maxing player
-  if (this.grid.playerTurn) {
-    bestScore = alpha;
-    for (var direction in [0, 1, 2, 3]) {
-      var newGrid = this.grid.clone();
-      if (newGrid.move(direction).moved) {
-        positions++;
-        if (newGrid.isWin()) {
-          return { move: direction, score: 16*Grid.prototype.winScore, positions: positions, cutoffs: cutoffs };
-        }
-        var newAI = new AI(newGrid);
-
-        if (depth == 0) {
-          result = { move: direction, score: newAI.eval() };
-        } else {
-          result = newAI.search(depth-1, bestScore, beta, positions, cutoffs);
-          if (result.score > 16*Grid.prototype.winScore) { // win
-            result.score = 16*Grid.prototype.winScore - 1; // to slightly penalize higher depth from win
-          }
-          positions = result.positions;
-          cutoffs = result.cutoffs;
-        }
-
-        if (result.score > bestScore) {
-          bestScore = result.score;
-          bestMove = direction;
-        }
-        if (bestScore > beta) {
-          cutoffs++
-          return { move: bestMove, score: beta, positions: positions, cutoffs: cutoffs };
-        }
-      }
-    }
-  } else { // computer's turn, we'll do heavy pruning to keep the branching factor low
-    bestScore = beta;
-
-    var candidates = [];
-    var cells = this.grid.availableCells();
-    for (var i in cells) {
-      var cell = cells[i];
-      candidates.push( { position: cell, value: 2 } );
-      candidates.push( { position: cell, value: 4 } );
-    }
-
-    // search on each candidate
-    for (var i in candidates) {
-      var position = candidates[i].position;
-      var value = candidates[i].value;
-      var newGrid = this.grid.clone();
-      var tile = new Tile(position, value);
-      newGrid.insertTile(tile);
-      newGrid.playerTurn = true;
-      positions++;
-      newAI = new AI(newGrid);
-      result = newAI.search(depth, alpha, bestScore, positions, cutoffs);
-      positions = result.positions;
-      cutoffs = result.cutoffs;
-
-      if (result.score < bestScore) {
-        bestScore = result.score;
-      }
-      if (bestScore < alpha) {
-        cutoffs++;
-        return { move: null, score: alpha, positions: positions, cutoffs: cutoffs };
-      }
-    }
-  }
-
-  return { move: bestMove, score: bestScore, positions: positions, cutoffs: cutoffs };
-}
-
 // performs a search and returns the best move
 AI.prototype.getBest = function() {
   return this.iterativeDeep();
@@ -105,25 +31,49 @@ AI.prototype.getBest = function() {
 // performs iterative deepening over the alpha-beta search
 AI.prototype.iterativeDeep = function() {
   var start = (new Date()).getTime();
-  var depth = 0;
-  var best;
-  do {
-    var newBest = this.search(depth, -16*Grid.prototype.winScore, 16*Grid.prototype.winScore, 0 ,0);
-    if (newBest.move == -1) {
-      break;
-    } else {
-      best = newBest;
-    }
-    depth++;
-  } while ( (new Date()).getTime() - start < minSearchTime);
-  return best;
-}
 
-AI.prototype.translate = function(move) {
- return {
-    0: 'up',
-    1: 'right',
-    2: 'down',
-    3: 'left'
-  }[move];
+  var scores = {};
+  var states = [];
+  for (var direction in [0, 1, 2, 3]) {
+    var newGrid = this.grid.clone();
+    if (newGrid.move(direction).moved) {
+      var score = new AI(newGrid).eval()
+      scores[direction] = score;
+      states.push(new State(newGrid, score, direction, 1.0));
+    }
+  }
+  var bestMove = { score: -1, direction: -1 }
+
+  // var moves = 0;
+  do {
+    // Find the current best state
+    var best = { score: -1, index: -1 };
+    for (var i in states) {
+      var state = states[i];
+      if (state.score > best.score) {
+        best.score = state.score;
+        best.index = i;
+      }
+    }
+
+    // Replace the best state with all its children
+    var state = states.splice(best.index, 1)[0];
+    var children = state.search();
+    var score = scores[state.origDirection];
+    score -= (state.score * state.chance);
+    for (var i in children) {
+      var child = children[i];
+      score += (child.score * child.chance);
+      states.push(child);
+    }
+    scores[state.origDirection] = score;
+    if (score > bestMove.score) {
+      bestMove.score = score;
+      bestMove.direction = state.origDirection;
+    }
+
+    // moves++;
+  } while ((new Date()).getTime() - start < minSearchTime);
+  // alert(moves);
+  return bestMove.direction;
 }
